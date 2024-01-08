@@ -38,7 +38,7 @@ GetKeyInput ← ; ⍢⊙Collect(=0/+ Find) :""
 
 # State machine
 ⍢(
-  ⊢⊚⌕□: {"start" "cpu_move" "player_start" "player_move" "player_win" "cpu_win" "draw"}
+  ⊢⊚⌕□: {"start" "cpu_move" "player_start" "player_move" "player_win" "cpu_win" "draw" "quit"}
   (
     # start
     ResetScreen
@@ -79,44 +79,52 @@ GetKeyInput ← ; ⍢⊙Collect(=0/+ Find) :""
     &pf "Move the cursor with the arrow keys\r\n"
     &pf "and confirm with space\r\n"
     &sl 0.2
+    &pf "Or you can press 'q' to quit\r\n"
+    &sl 0.2
     "player_move"
   | # player_move
     ResetScreen
     &pf "It's your move now\r\n"
     &pf "Move the cursor with the arrow keys\r\n"
-    &pf "and confirm with space\r\n"
-    ShowField ⍜⊡(@¤;),,                  # show field with cursor
-    ⊢⊚Find: GetKeyInput. ⊂ ArrowKeys " " # get input
-    ≥⧻ArrowKeys.                         # check what type of input
+    &pf "and confirm with space.\r\n"
+    &pf "Or you can press 'q' to quit\r\n"
+    ShowField ⍜⊡(@¤;),,                   # show field with cursor
+    ⊢⊚Find: GetKeyInput. ⊂ ArrowKeys " q" # get input
+    ≥⧻ArrowKeys.                          # check what type of input
     (
       # arrow
       +⊏: [0_¯1 0_1 ¯1_0 1_0] # select direction and update cursor
       ◿⧻,                     # wrap cursor if needed
       "player_move"
-    |           # space
-      ;         # drop input from the stack
-      =Empty⊡,, # check if position is empty
+    | # no arrow
+      -⧻ArrowKeys
       (
-        # invalid position
-        "player_move"
-        |           # valid position
-        ,:          # copy cursor under field
-        ⍜⊡(Player;) # set position to player
-        ResetScreen
-        ShowField.
-        &sl 1
-        Won Player . # check player won
+        # space
+        =Empty⊡,, # check if position is empty
         (
-          # no win
-          Full . # check if field is full
+          # invalid position
+          "player_move"
+            |         # valid position
+          ,:          # copy cursor under field
+          ⍜⊡(Player;) # set position to player
+          ResetScreen
+          ShowField.
+          &sl 1
+          Won Player . # check player won
           (
-            # not full
-            "cpu_move"
-                | "draw"
+            # no win
+            Full . # check if field is full
+            (
+              # not full
+              "cpu_move"
+                    | "draw"
+            )
+                | # player win
+            "player_win"
           )
-            | # player win
-          "player_win"
         )
+        | # quit
+        "quit"
       )
     )
   | # player_win
@@ -130,6 +138,9 @@ GetKeyInput ← ; ⍢⊙Collect(=0/+ Find) :""
   | # draw
     &pf "It's a draw!\r\n"
     &sl 1
+    "done"
+  | # quit
+    &pf "You quit\r\n"
     "done"
   )
 )(¬≍"done") "start" InitField InitCursor
