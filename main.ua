@@ -2,7 +2,16 @@ Empty ← @-
 Player ← @O
 Cpu ← @X
 
-InitField ← ↯3_3Empty
+DefaultFieldSize ← 3
+FieldSize ← ⍣⋕(|2
+  ⊙;
+  &p $"Size argument must be a number (got '_')"°□
+  &p $"We will play with a default field size of _" DefaultFieldSize
+  &p "Press enter to continue, or Ctrl-C to quit and try again"
+  ;&sc
+  DefaultFieldSize
+) ⊡1&args
+InitField ← ↯FieldSize_FieldSize Empty
 InitCursor ← 0_0
 
 # field --
